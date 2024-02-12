@@ -93,7 +93,7 @@ async function retrieveQuote() {
   }
   //check api for vaid ticker
   try {
-    let url = `https://us-econ-dashboard.onrender.com//quote/${ticker}`;
+    let url = `https://us-econ-dashboard.onrender.com/quote/${ticker}`;
     response = await axios.get(url);
     user_input.value = '';
 
