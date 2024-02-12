@@ -4,7 +4,7 @@ getEcoNums();
 get_econ_calendar();
 
 let watchlistButtonClickListener;
-BASE_URL = 'http://127.0.0.1:5000';
+BASE_URL = 'https://us-econ-dashboard.onrender.com/';
 
 
 let userId = document.getElementById('userId');
@@ -93,7 +93,7 @@ async function retrieveQuote() {
   }
   //check api for vaid ticker
   try {
-    let url = `http://127.0.0.1:5000/quote/${ticker}`;
+    let url = `https://us-econ-dashboard.onrender.com//quote/${ticker}`;
     response = await axios.get(url);
     user_input.value = '';
 
@@ -155,7 +155,7 @@ async function addTickerToDatabase(ticker, response) {
     "user_id": userId
   };
   console.log('adding this to db', params);
-  let url = 'http://127.0.0.1:5000/add_ticker';
+  let url = 'https://us-econ-dashboard.onrender.com/add_ticker';
 
   try {
     console.log('calling api');
@@ -269,7 +269,7 @@ async function removeTickerFromDb(ticker) {
 
 
 
-  let url = `http://127.0.0.1:5000/delete_ticker/${ticker}`;
+  let url = `https://us-econ-dashboard.onrender.com/delete_ticker/${ticker}`;
 
 
   let response = await axios.post(url)
@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', startUpdatingWatchlist);
 document.getElementById('zodiac-signs').addEventListener('change', function () {
   var selectedSign = this.value;
   console.log(selectedSign);
-  let url = `http://127.0.0.1:5000/horoscope/${selectedSign}`;
+  let url = `https://us-econ-dashboard.onrender.com/horoscope/${selectedSign}`;
   axios.get(url)
     .then(function (response) {
 
@@ -365,7 +365,7 @@ document.getElementById('btn-city').addEventListener('click', getWeather);
 function getWeather() {
 
   let city = document.getElementById('input-city').value;
-  let url = `http://127.0.0.1:5000/weather/${city}`;
+  let url = `https://us-econ-dashboard.onrender.com/weather/${city}`;
   axios.get(url)
     .then(function (response) {
       // let weather=document.getElementById('todays-weather')
@@ -395,7 +395,7 @@ function getWeather() {
 async function get_marketSummary() {
   clearMarketDataSummary()
   let table = document.getElementById('market-summary');
-  url = 'http://127.0.0.1:5000/market_summary';
+  url = 'https://us-econ-dashboard.onrender.com/market_summary';
 
   response = await axios.get(url)
     .then(function (response) {
@@ -448,7 +448,7 @@ async function get_news(){
   clearNews()
 
   let headlines= document.getElementById('news-table');
-  url = 'http://127.0.0.1:5000/us_news';
+  url = 'https://us-econ-dashboard.onrender.com/us_news';
   await axios.get(url)
   .then(function (response) {
 
@@ -497,7 +497,7 @@ document.addEventListener('DOMContentLoaded', updateNews);
 
 
 async function jokeMe() {
-  url = 'http://127.0.0.1:5000/joke';
+  url = 'https://us-econ-dashboard.onrender.com/joke';
   let joke = document.getElementById('joke');
   await axios.get(url)
     .then(function (response) {
@@ -515,7 +515,7 @@ joker.addEventListener('click', jokeMe);
 
 
 async function getEcoNums() {
-  url = 'http://127.0.0.1:5000/economic_data';
+  url = 'https://us-econ-dashboard.onrender.com/economic_data';
   let econTable = document.getElementById('ecoStats');
   await axios.get(url)
     .then(function (response) {
@@ -544,7 +544,7 @@ async function getEcoNums() {
 
 }
 async function get_econ_calendar() {
-  url = 'http://127.0.0.1:5000/calendar';
+  url = 'https://us-econ-dashboard.onrender.com/calendar';
 
   response = await axios.get(url);
   display_econ_calendar(response);
