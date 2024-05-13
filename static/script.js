@@ -345,7 +345,8 @@ document.addEventListener('DOMContentLoaded', startUpdatingWatchlist);
 document.getElementById('zodiac-signs').addEventListener('change', function () {
   var selectedSign = this.value;
   console.log(selectedSign);
-  let url = `https://us-econ-dashboard.onrender.com/horoscope/${selectedSign}`;
+  //let url = `https://us-econ-dashboard.onrender.com/horoscope/${selectedSign}`;
+  `https://astrostyle.com/horoscopes/daily/${selectedSign}`
   axios.get(url)
     .then(function (response) {
 
