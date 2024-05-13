@@ -26,7 +26,7 @@ WEATHER_API_KEY=os.environ['WEATHER_API_KEY']
 OPENAI_API_KEY=os.environ['OPENAI_API_KEY']
 
 fred =Fred(api_key=os.environ['FRED_API_KEY'])
-print(os.environ)
+
 client = openai.Client(api_key=OPENAI_API_KEY)
 
 
@@ -313,18 +313,21 @@ def get_us_news():
 @app.route('/horoscope/<sign>',methods=['GET'])
 def get_horoscope(sign):
     openai.api_key = OPENAI_API_KEY
+    headers={"Accept":"application/json"}
+    url=f"https://astrostyle.com/horoscopes/daily/${sign}/"
+    response = requests.get(url,headers=headers)
 
 
-    completion = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": f"retrieve the  Daily Horoscope for  {sign}  ."},
-            {"role": "user", "content": f"display a 3 line summary of the horoscope."}
+    # completion = client.chat.completions.create(
+    #     model="gpt-3.5-turbo",
+    #     messages=[
+    #         {"role": "system", "content": f"retrieve the  Daily Horoscope for  {sign}  ."},
+    #         {"role": "user", "content": f"display a 3 line summary of the horoscope."}
 
-        ]
-    )
-    msg = completion.choices[0].message.content
-    response=str(f'{sign} - {msg}')
+    #     ]
+    # )
+    # msg = completion.choices[0].message.content
+    # response=str(f'{sign} - {msg}')
     return response
 
 '''==================JOKES!!======================================='''
