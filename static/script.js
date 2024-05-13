@@ -346,16 +346,16 @@ document.getElementById('zodiac-signs').addEventListener('change', function () {
   var selectedSign = this.value;
   console.log(selectedSign);
   //let url = `https://us-econ-dashboard.onrender.com/horoscope/${selectedSign}`;
-  let url=`https://astrostyle.com/horoscopes/daily/${selectedSign}`
-  axios.get(url)
-    .then(function (response) {
+  window.location.href=`https://astrostyle.com/horoscopes/daily/${selectedSign}`
+  // axios.get(url)
+  //   .then(function (response) {
 
-      let reading = document.getElementById('todays-horoscope');
-      reading.innerHTML = ` ${response.data}`;
-    })
-    .catch(function (error) {
-      console.error(error); // Handle errors
-    });
+  //     let reading = document.getElementById('todays-horoscope');
+  //     reading.innerHTML = ` ${response.data}`;
+  //   })
+  //   .catch(function (error) {
+  //     console.error(error); // Handle errors
+  //   });
 
 
 });
