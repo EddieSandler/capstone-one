@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
   quoteButton.addEventListener('click', (event) => {
     event.preventDefault();
     retrieveQuote();
-    getEcoNums();
+    
   });
 });
 
