@@ -1,5 +1,5 @@
 //load all api data
-BASE_URL = 'https://us-econ-dashboard.onrender.com/';
+BASE_URL = 'https://us-econ-dashboard.onrender.com';
 
 getEcoNums();
 get_econ_calendar();
