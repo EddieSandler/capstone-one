@@ -1,19 +1,16 @@
 //load all api data
+BASE_URL = 'https://us-econ-dashboard.onrender.com/';
 
 getEcoNums();
 get_econ_calendar();
 
 let watchlistButtonClickListener;
-BASE_URL = 'https://us-econ-dashboard.onrender.com/';
 
 
 let userId = document.getElementById('userId');
 userId = parseInt(userId.innerText);
 
-
-//retrieves watchlist from backend and populates DOM on login
-
-
+// Retrieves watchlist from backend and populates DOM on login
 let watchlist = document.getElementById("watchlist-data").innerHTML;
 watchlistInnerHTML = watchlist.replace(/&amp;/g, '&').replace(/'/g, '"');
 let userWatchlist = new Set();
@@ -40,7 +37,6 @@ if (userWatchlist.size > 0) {
     changeCell.textContent = item.change.toFixed(2);
     row.appendChild(changeCell);
 
-
     const PctchangeCell = document.createElement('td');
     PctchangeCell.textContent = item.changep.toFixed(2);
     row.appendChild(PctchangeCell);
@@ -53,7 +49,6 @@ if (userWatchlist.size > 0) {
       priceCell.className = 'negative';
       changeCell.className = 'negative';
       PctchangeCell.className = 'negative';
-
     }
 
     const nameCell = document.createElement('td');
@@ -62,52 +57,40 @@ if (userWatchlist.size > 0) {
 
     let removeButton = document.createElement('button');
     removeButton.textContent = 'Remove';
-
     removeButton.className = 'btn btn-danger';
     row.appendChild(removeButton);
 
     removeButton.addEventListener('click', () => removeTickerFromDOM(row, item.symbol));
 
     table.appendChild(row);
-
-
   }
-
-
 }
 
-
-
-
-
-
+// Function to retrieve stock quote
 async function retrieveQuote() {
-
   let user_input = document.getElementById('ticker');
   let ticker = user_input.value.toUpperCase();
 
   if (!ticker) {
-    // Handle empty input (e.g., display an alert or a warning message)
     alert('Input cannot be empty');
-    return; // Stop the function if the input is empty
-  }
-  //check api for vaid ticker
-  try {
-    let url = `https://us-econ-dashboard.onrender.com/quote/${ticker}`;
-    response = await axios.get(url);
-    user_input.value = '';
-
-    return displayQuote(response, ticker);
-
-  } catch {
-    alert('invalid ticker');
-    user_input.value = '';
     return;
   }
 
-};
+  try {
+    let url = `${BASE_URL}/quote/${ticker}`;
+    let response = await axios.get(url);
+    user_input.value = '';
 
-document.addEventListener('DOMContentLoaded', (event) => {
+    return displayQuote(response, ticker);
+  } catch {
+    alert('Invalid ticker');
+    user_input.value = '';
+    return;
+  }
+}
+
+// Event listener for DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
   const quoteButton = document.getElementById('quote');
   quoteButton.addEventListener('click', (event) => {
     event.preventDefault();
@@ -115,17 +98,16 @@ document.addEventListener('DOMContentLoaded', (event) => {
   });
 });
 
+// Function to display stock quote
 function displayQuote(response, ticker) {
-
-  const displayContainer = document.getElementById('quote-section');
   document.getElementById('symbolField').textContent = ticker;
-  price = document.getElementById("priceField");
+  let price = document.getElementById("priceField");
   price.textContent = response.data.regularMarketPrice.toFixed(2);
-  changeD = document.getElementById('changeField');
+  let changeD = document.getElementById('changeField');
   changeD.textContent = response.data.regularMarketChange.toFixed(2);
-  changeP = document.getElementById('Pctchange');
+  let changeP = document.getElementById('Pctchange');
   changeP.textContent = response.data.regularMarketChangePercent.toFixed(2);
-  symbol = document.getElementById('nameField').textContent = response.data.shortName;
+  document.getElementById('nameField').textContent = response.data.shortName;
 
   if (response.data.regularMarketChange > 0) {
     price.classList.add('positive');
@@ -134,18 +116,23 @@ function displayQuote(response, ticker) {
   } else {
     price.classList.add('negative');
     changeD.classList.add('negative');
-    changeP.className.add('negative');
-
+    changeP.classList.add('negative');
   }
+
   const watchlistButton = document.getElementById('add');
   watchlistButton.removeEventListener('click', watchlistButtonClickListener);
   watchlistButtonClickListener = () => addTickerToDatabase(ticker, response);
   watchlistButton.addEventListener('click', watchlistButtonClickListener);
-
-
 }
 
+// Function to add ticker to database
 async function addTickerToDatabase(ticker, response) {
+  // Check if the ticker is already in the watchlist
+  if ([...userWatchlist].some(item => item.symbol === ticker)) {
+    alert('Ticker already in watchlist');
+    return;
+  }
+
   console.log('data to add to DOM ', response);
   console.log('the watchlist now contains', userWatchlist);
   let params = {
@@ -155,26 +142,37 @@ async function addTickerToDatabase(ticker, response) {
     "user_id": userId
   };
   console.log('adding this to db', params);
-  let url = 'https://us-econ-dashboard.onrender.com/add_ticker';
+  let url = `${BASE_URL}/add_ticker`;
 
   try {
     console.log('calling api');
-    let res = await axios.post(url, params);
+    await axios.post(url, params);
     console.log('api called');
     return displayQuoteInWatchlist(ticker, response);
-
   } catch (error) {
-    if (error.response && error.response.status === 409) { // Assuming 409 status code for duplicate entry
-      alert('Ticker Already in Watchlist');
+    console.error('Error adding ticker:', error);
+    if (error.response) {
+      // Server responded with a status other than 200 range
+      console.error('Server response:', error.response.data);
+      if (error.response.status === 409) {
+        alert('Ticker Already in Watchlist');
+      } else {
+        alert(`An error occurred: ${error.response.data.message || 'Unknown error'}`);
+      }
+    } else if (error.request) {
+      // Request was made but no response received
+      console.error('No response received:', error.request);
+      alert('No response from server. Please try again later.');
     } else {
-      alert('An error occurred while adding the ticker');
+      // Something else caused the error
+      console.error('Error:', error.message);
+      alert(`An error occurred: ${error.message}`);
     }
     return error;
   }
 }
 
-
-
+// Function to display quote in watchlist
 function displayQuoteInWatchlist(ticker, data) {
   console.log('time to add to watchlist: ', ticker, data);
   userWatchlist.add({
@@ -184,7 +182,6 @@ function displayQuoteInWatchlist(ticker, data) {
     changep: data.data.regularMarketChangePercent,
     name: data.data.shortName
   });
-
 
   let table = document.getElementById('watchlist-table');
   const row = document.createElement('tr');
@@ -197,8 +194,6 @@ function displayQuoteInWatchlist(ticker, data) {
   const priceCell = document.createElement('td');
   priceCell.textContent = data.data.regularMarketPrice.toFixed(2);
   row.appendChild(priceCell);
-
-
 
   const changeCell = document.createElement('td');
   changeCell.textContent = data.data.regularMarketChange.toFixed(2);
@@ -216,61 +211,39 @@ function displayQuoteInWatchlist(ticker, data) {
     changeCell.className = 'negative';
     priceCell.className = 'negative';
     PctchangeCell.className = 'negative';
-
   }
-
 
   const nameCell = document.createElement('td');
   nameCell.textContent = data.data.shortName;
   row.appendChild(nameCell);
 
-
   let removeButton = document.createElement('button');
   removeButton.textContent = 'Remove';
-
-  removeButton.classList.add('btn','btn-danger');
-
-
+  removeButton.classList.add('btn', 'btn-danger');
   row.appendChild(removeButton);
 
   removeButton.addEventListener('click', function () {
     removeTickerFromDOM(row, ticker);
-
-
   });
 
-
-
-
   table.appendChild(row);
-
-
 }
 
+// Function to remove ticker from DOM and watchlist
 function removeTickerFromDOM(row, ticker) {
   if (!ticker) {
     console.error('Ticker is undefined or null');
-    return; // Exit the function if ticker is not defined
+    return;
   }
 
   row.parentNode.removeChild(row);
-
-
-
   userWatchlist = new Set([...userWatchlist].filter(item => item.symbol !== ticker));
-
   removeTickerFromDb(ticker);
-
 }
 
-
-
+// Function to remove ticker from database
 async function removeTickerFromDb(ticker) {
-
-
-
-  let url = `https://us-econ-dashboard.onrender.com/delete_ticker/${ticker}`;
-
+  let url = `${BASE_URL}/delete_ticker/${ticker}`;
 
   let response = await axios.post(url)
     .then(response => {
@@ -278,13 +251,12 @@ async function removeTickerFromDb(ticker) {
     });
   console.log(response);
   return 'ticker deleted';
-
-
-
 }
+
+// Function to update watchlist
 async function updateWatchlist() {
   let symbolsArray = Array.from(userWatchlist).map(item => item.symbol);
-  params = { "symbols": symbolsArray };
+  let params = { "symbols": symbolsArray };
   let url = `${BASE_URL}/watchlist_refresh`;
 
   try {
@@ -292,31 +264,23 @@ async function updateWatchlist() {
     response.data.forEach(updatedItem => {
       updateWatchlistItem(updatedItem);
     });
-
   } catch (error) {
     console.error('error updating watchlist: ', error);
-
   }
-
-
 }
 
+// Function to update individual watchlist item
 function updateWatchlistItem(updatedItem) {
-
   let item = [...userWatchlist].find(i => i.symbol === updatedItem.symbol);
   if (item) {
-
     item.price = updatedItem.price;
     item.change = updatedItem.change;
     item.changep = updatedItem.changep;
-
     updateDOMForWatchlistItem(item);
-
-
   }
-
-
 }
+
+// Function to update DOM for watchlist item
 function updateDOMForWatchlistItem(item) {
   let symbolCell = document.getElementById(item.symbol);
   if (symbolCell) {
@@ -324,54 +288,41 @@ function updateDOMForWatchlistItem(item) {
     row.cells[1].textContent = item.price.toFixed(2);
     row.cells[2].textContent = item.change.toFixed(2);
     row.cells[3].textContent = item.changep.toFixed(2);
-    // Update the class for positive/negative changes if needed
   }
 }
 
-
-
-
-
+// Function to start updating watchlist periodically
 function startUpdatingWatchlist() {
-  updateWatchlist(); // Initial call to the function
-  setInterval(updateWatchlist, 10000); // Set interval for 10 seconds (10000 milliseconds)
+  updateWatchlist();
+  setInterval(updateWatchlist, 10000);
 }
 
 document.addEventListener('DOMContentLoaded', startUpdatingWatchlist);
 
-
-
-
+// Event listener for zodiac sign change
 document.getElementById('zodiac-signs').addEventListener('change', function () {
-  var selectedSign = this.value;
+  var selectedSign = this.value.toLowerCase();
   console.log(selectedSign);
-  //let url = `https://us-econ-dashboard.onrender.com/horoscope/${selectedSign}`;
-  window.location.href=`https://astrostyle.com/horoscopes/daily/${selectedSign}`
-  // axios.get(url)
-  //   .then(function (response) {
-
-  //     let reading = document.getElementById('todays-horoscope');
-  //     reading.innerHTML = ` ${response.data}`;
-  //   })
-  //   .catch(function (error) {
-  //     console.error(error); // Handle errors
-  //   });
-
-
-});
-
-
-document.getElementById('btn-city').addEventListener('click', getWeather);
-
-function getWeather() {
-
-  let city = document.getElementById('input-city').value;
-  let url = `https://us-econ-dashboard.onrender.com/weather/${city}`;
+  let url = `${BASE_URL}/horoscope/${selectedSign}`;
   axios.get(url)
     .then(function (response) {
-      // let weather=document.getElementById('todays-weather')
-      // weather.innerHTML=`${city}-${response.data}`
+      let reading = document.getElementById('todays-horoscope');
+      reading.innerHTML = ` ${response.data}`;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+});
 
+// Event listener for weather button click
+document.getElementById('btn-city').addEventListener('click', getWeather);
+
+// Function to get weather data
+function getWeather() {
+  let city = document.getElementById('input-city').value;
+  let url = `${BASE_URL}/weather/${city}`;
+  axios.get(url)
+    .then(function (response) {
       let location = response.data.location.name;
       let temp = response.data.data.values.temperature;
       let humidity = response.data.data.values.humidity;
@@ -381,26 +332,20 @@ function getWeather() {
       document.getElementById("temp").innerHTML = temp;
       document.getElementById("humidity").innerHTML = humidity;
       document.getElementById("precipitation").innerHTML = precipitation;
-
-      document.getElementById('todays-weather');
-
     })
     .catch(function (error) {
-      console.error(error); // Handle errors
+      console.error(error);
     });
-
-
-
 }
 
+// Function to get market summary
 async function get_marketSummary() {
-  clearMarketDataSummary()
+  clearMarketDataSummary();
   let table = document.getElementById('market-summary');
-  url = 'https://us-econ-dashboard.onrender.com/market_summary';
+  let url = `${BASE_URL}/market_summary`;
 
-  response = await axios.get(url)
+  let response = await axios.get(url)
     .then(function (response) {
-
       for (let item of response.data) {
         let row = table.insertRow();
 
@@ -411,7 +356,6 @@ async function get_marketSummary() {
 
         if (item.longName) {
           cell1.innerHTML = item.longName;
-
         } else {
           cell1.innerHTML = item.shortName;
         }
@@ -419,151 +363,119 @@ async function get_marketSummary() {
         cell3.innerHTML = item.regularMarketChange.fmt;
         cell4.innerHTML = item.regularMarketChangePercent.fmt;
       }
-
     });
-
-
-}
-//clear market summary prior to periodic update
-
-
-  function clearMarketDataSummary() {
-    const table = document.getElementById('market-summary');
-    // Clear all rows except the header, if there is one
-    while (table.rows.length > 1) {
-        table.deleteRow(1);
-    }
 }
 
+// Function to clear market data summary
+function clearMarketDataSummary() {
+  const table = document.getElementById('market-summary');
+  while (table.rows.length > 1) {
+    table.deleteRow(1);
+  }
+}
 
+// Function to update market summary periodically
 function updateMarketSummary() {
-
-  get_marketSummary(); // Initial call to the function
-  clearMarketDataSummary()
-  setInterval(get_marketSummary, 60000); // Set interval for 60 seconds (10000 milliseconds)
+  get_marketSummary();
+  clearMarketDataSummary();
+  setInterval(get_marketSummary, 60000);
 }
 
 document.addEventListener('DOMContentLoaded', updateMarketSummary);
 
-async function get_news(){
-  clearNews()
+// Function to get news
+async function get_news() {
+  clearNews();
 
-  let headlines= document.getElementById('news-table');
-  url = 'https://us-econ-dashboard.onrender.com/us_news';
+  let headlines = document.getElementById('news-table');
+  let url = `${BASE_URL}/us_news`;
   await axios.get(url)
-  .then(function (response) {
-
-     response.data.news.forEach(story => {
+    .then(function (response) {
+      response.data.news.forEach(story => {
         let row = headlines.insertRow();
         row.classList.add('news-row');
-        let cell=row.insertCell(0)
+        let cell = row.insertCell(0);
 
         const link = document.createElement('a');
         link.href = story.link;
         link.textContent = story.title;
-        link.target = "_blank"; // Open in new tab
+        link.target = "_blank";
 
         cell.appendChild(link);
-
-
-
-})
-
-  })
+      });
+    });
 }
 
-
-
+// Function to update news periodically
 function updateNews() {
-
-  get_news()
-  clearNews()
-
-  ; // Initial call to the function
-  setInterval(get_news,180000); // Set interval for 180000 seconds (10000 milliseconds)
+  get_news();
+  clearNews();
+  setInterval(get_news, 180000);
 }
 
-function clearNews(){
-
-  let table= document.getElementById('news-table')
+// Function to clear news
+function clearNews() {
+  let table = document.getElementById('news-table');
   while (table.rows.length > 0) {
     table.deleteRow(0);
-}
-
-
+  }
 }
 
 document.addEventListener('DOMContentLoaded', updateNews);
 
-
-
+// Function to get a joke
 async function jokeMe() {
-  url = 'https://us-econ-dashboard.onrender.com/joke';
+  let url = `${BASE_URL}/joke`;
   let joke = document.getElementById('joke');
   await axios.get(url)
     .then(function (response) {
       joke.innerHTML = response.data;
-
-
     });
 }
 
 const joker = document.getElementById('joke-me');
-
 joker.addEventListener('click', jokeMe);
 
-
-
-
+// Function to get economic numbers
 async function getEcoNums() {
-  url = 'https://us-econ-dashboard.onrender.com/economic_data';
+  let url = `${BASE_URL}/economic_data`;
   let econTable = document.getElementById('ecoStats');
   await axios.get(url)
     .then(function (response) {
-
       for (let item in response.data) {
-
-        // Create a new row
         const row = document.createElement('tr');
-
-        // Create the first cell for the indicator name
         const nameCell = document.createElement('td');
         nameCell.textContent = item;
         row.appendChild(nameCell);
 
-        // Create the second cell for the indicator value
         const valueCell = document.createElement('td');
         valueCell.textContent = response.data[item];
         row.appendChild(valueCell);
 
-        // Append the new row to the table
         econTable.appendChild(row);
       }
     });
-
-
-
 }
-async function get_econ_calendar() {
-  url = 'https://us-econ-dashboard.onrender.com/calendar';
 
-  response = await axios.get(url);
+// Function to get economic calendar
+async function get_econ_calendar() {
+  let url = `${BASE_URL}/calendar`;
+  let response = await axios.get(url);
   display_econ_calendar(response);
 }
 
+// Function to display economic calendar
 function display_econ_calendar(data) {
   const container = document.getElementById('econ-calendar');
   const table = document.getElementById('eco-releases');
   data.data.map((el) => {
     for (const [key, value] of Object.entries(el)) {
-
-
       const row = document.createElement('tr');
       const keyCell = document.createElement('td');
       keyCell.textContent = key;
       row.append(keyCell);
       const valueCell = document.createElement('td');
-      if (el.value !== 'NA') {
+      if (value !== 'NA') {
         const link = document.createElement('a');
         link.href = value;
         link.textContent = value;
@@ -574,11 +486,7 @@ function display_econ_calendar(data) {
       }
       row.append(valueCell);
       table.appendChild(row);
-
     }
   });
   container.appendChild(table);
-
 }
-
-
