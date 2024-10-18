@@ -1,5 +1,5 @@
 //load all api data
-BASE_URL = 'https://us-econ-dashboard.onrender.com';
+const BASE_URL = 'https://us-econ-dashboard.onrender.com';
 
 getEcoNums();
 get_econ_calendar();
@@ -95,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
   quoteButton.addEventListener('click', (event) => {
     event.preventDefault();
     retrieveQuote();
+    getEcoNums();
   });
 });
 
